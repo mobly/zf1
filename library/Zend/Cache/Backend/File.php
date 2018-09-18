@@ -636,11 +636,15 @@ class Zend_Cache_Backend_File extends Zend_Cache_Backend implements Zend_Cache_B
         if (!is_file($file)) {
             return false;
         }
-        if (!@unlink($file)) {
-            # we can't remove the file (because of locks or any problem)
-            $this->_log("Zend_Cache_Backend_File::_remove() : we can't remove $file");
-            return false;
-        }
+
+        try {
+            if (!@unlink($file)) {
+                # we can't remove the file (because of locks or any problem)
+                $this->_log("Zend_Cache_Backend_File::_remove() : we can't remove $file");
+                return false;
+            }
+        } catch (\Throwable $e) {}
+
         return true;
     }
 
@@ -1012,7 +1016,11 @@ class Zend_Cache_Backend_File extends Zend_Cache_Backend implements Zend_Cache_B
             }
             @fclose($f);
         }
-        @chmod($file, $this->_options['cache_file_perm']);
+
+        try {
+            @chmod($file, $this->_options['cache_file_perm']);
+        } catch (\Throwable $e) {}
+
         return $result;
     }
 
